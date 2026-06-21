@@ -59,63 +59,69 @@ Zhizhao Liang,
 git clone --recursive https://github.com/ISEE-Laboratory/OmniDexGrasp.git
 cd OmniDexGrasp
 
-# 2. Initialize submodules (if not cloned with --recursive)
+# 2. Initialize submodules
 git submodule update --init --recursive
 ```
 
-Due to unresolved dependency conflicts between submodules, multiple conda environments are required:
+Due to unresolved dependency conflicts between upstream model stacks, multiple `uv` virtual environments are recommended:
 
-| Conda Env | Module | Reference |
-|-----------|--------|-----------|
-| `omnidexgrasp` | This repository | See instructions below |
-| `hamer` | HaMeR hand estimation | [geopavlakos/hamer](https://github.com/geopavlakos/hamer) |
-| `gsam` | Grounded-SAM-2 segmentation | [IDEA-Research/Grounded-SAM-2](https://github.com/IDEA-Research/Grounded-SAM-2) |
-| `megapose` | MegaPose6D pose estimation | [megapose6d/megapose6d](https://github.com/megapose6d/megapose6d) |
+| Env | Module | Reference |
+|-----|--------|-----------|
+| `.venv` | This repository | See instructions below |
+| `.venv-hamer` | HaMeR hand estimation | [geopavlakos/hamer](https://github.com/geopavlakos/hamer) |
+| `.venv-gsam` | Grounded-SAM-2 segmentation | [IDEA-Research/Grounded-SAM-2](https://github.com/IDEA-Research/Grounded-SAM-2) |
+| `.venv-megapose` | MegaPose6D pose estimation | [megapose6d/megapose6d](https://github.com/megapose6d/megapose6d) |
 
-For `hamer`, `gsam`, and `megapose`, please refer to their official documentation for installation.
+For `hamer`, `gsam`, and `megapose`, please refer to their official documentation for model-specific installation details.
 
-**Setting up the `omnidexgrasp` environment:**
+**Setting up the `omnidexgrasp` environment with `uv`:**
 
 ```bash
-# 1. Create conda environment
-conda create -n omnidexgrasp python=3.10 -y
-conda activate omnidexgrasp
+# 1. Create and activate the local uv environment
+uv venv --python 3.10
+source .venv/bin/activate
 
-# 2. Install PyTorch with CUDA 12.8
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# 2. Install locked base dependencies
+uv sync
 
 # 3. Install PyTorch3D
-conda install -c conda-forge iopath fvcore -y
-pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
+uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
 
-# 4. Install nvdiffrast 
+# 4. Install nvdiffrast
 git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast
-cd /tmp/nvdiffrast && pip install . --no-build-isolation && cd -
+uv pip install --no-build-isolation /tmp/nvdiffrast
 
-# 5. Install project dependencies (includes manotorch, chamfer-distance, etc.)
-pip install -r requirements.txt
+# 5. Install local source-build dependencies from submodules
+uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
+uv pip install -e omnidexgrasp/thirdparty/EasyHOI
 
-# 6. Install CSDF (https://github.com/wrc042/CSDF)
-git clone https://github.com/wrc042/CSDF.git omnidexgrasp/thirdparty/CSDF
-cd omnidexgrasp/thirdparty/CSDF
-pip install -e . --no-build-isolation
-cd ../../..
-
-# 7. Install EasyHOI
-cd omnidexgrasp/thirdparty/EasyHOI
-pip install -e .
-cd ../../..
+# 6. Optional legacy dependency used by older EasyHOI paths
+uv pip install "chamfer-distance>=0.1"
 ```
 
-> **Note:** Building CSDF, PyTorch3D and nvdiffrast from source requires CUDA toolkit. Ensure `nvcc` is available in your PATH.
+> **Note:** Building CSDF, PyTorch3D, nvdiffrast, and chamfer-distance from source requires CUDA toolkit. Ensure `nvcc` is available in your PATH.
 
-**Setting up server environments (`hamer`, `gsam`):**
+**Setting up server environments (`hamer`, `gsam`, `megapose`) with `uv`:**
 
-After configuring each environment following their official documentation, install the server dependencies:
+The upstream model stacks still have conflicting dependencies, so keep separate `uv` virtual environments for these modules. Install each upstream project according to its official documentation inside its own environment, then install this repository's lightweight server dependencies:
 
 ```bash
-# In each server environment (hamer / gsam)
-pip install fastapi uvicorn pydantic hydra-core omegaconf
+# Example: HaMeR server environment
+uv venv .venv-hamer --python 3.10
+source .venv-hamer/bin/activate
+uv pip install -e omnidexgrasp/thirdparty/hamer
+uv pip install fastapi uvicorn pydantic hydra-core omegaconf
+
+# Example: Grounded-SAM-2 server environment
+uv venv .venv-gsam --python 3.10
+source .venv-gsam/bin/activate
+uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
+uv pip install fastapi uvicorn pydantic hydra-core omegaconf
+
+# Example: MegaPose6D environment
+uv venv .venv-megapose --python 3.10
+source .venv-megapose/bin/activate
+uv pip install -e omnidexgrasp/thirdparty/megapose6d
 ```
 
 </details>
