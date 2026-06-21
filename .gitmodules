@@ -1,0 +1,15 @@
+[submodule "omnidexgrasp/thirdparty/CSDF"]
+	path = omnidexgrasp/thirdparty/CSDF
+	url = git@github.com:wrc042/CSDF.git
+[submodule "omnidexgrasp/thirdparty/EasyHOI"]
+	path = omnidexgrasp/thirdparty/EasyHOI
+	url = git@github.com:lym29/EasyHOI.git
+[submodule "omnidexgrasp/thirdparty/hamer"]
+	path = omnidexgrasp/thirdparty/hamer
+	url = git@github.com:geopavlakos/hamer.git
+[submodule "omnidexgrasp/thirdparty/Grounded-SAM-2"]
+	path = omnidexgrasp/thirdparty/Grounded-SAM-2
+	url = git@github.com:IDEA-Research/Grounded-SAM-2.git
+[submodule "omnidexgrasp/thirdparty/megapose6d"]
+	path = omnidexgrasp/thirdparty/megapose6d
+	url = git@github.com:megapose6d/megapose6d.git
