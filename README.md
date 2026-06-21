@@ -88,14 +88,13 @@ uv sync
 uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
 
 # 4. Install nvdiffrast
-git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast
-uv pip install --no-build-isolation /tmp/nvdiffrast
+uv pip install --no-build-isolation "git+https://github.com/NVlabs/nvdiffrast.git"
 
 # 5. Install local source-build dependencies from submodules
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 uv pip install -e omnidexgrasp/thirdparty/EasyHOI
 
-# 6. Optional legacy dependency used by older EasyHOI paths
+# 6. Required for EasyHOI optimization
 uv pip install "chamfer-distance>=0.1"
 ```
 
@@ -161,7 +160,7 @@ Download it into the local `datasets/` folder before running the code.
 Example using `huggingface_hub`:
 
 ```bash
-pip install huggingface_hub
+uv pip install huggingface_hub
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download(
@@ -194,27 +193,32 @@ MANO hand model requires registration at [mano.is.tue.mpg.de](https://mano.is.tu
 
 Reconstruct 3D hand and object from input images. All `python -m ...` commands below are run from the `omnidexgrasp/` directory because the code imports `recons`, `optim`, `human2robo`, and `utils` as top-level packages.
 
+Activate the matching `uv` environment once per terminal before running each command group:
+
+| Command group | Environment |
+|---------------|-------------|
+| HaMeR server | `source ../.venv-hamer/bin/activate` |
+| GSAM server | `source ../.venv-gsam/bin/activate` |
+| MegaPose pose estimation | `source ../.venv-megapose/bin/activate` |
+| Reconstruction client, optimization, retargeting, visualization | `source ../.venv/bin/activate` |
+
 **Phase 1: Hand & Object Reconstruction**
 
 ```bash
-# Terminal 1: Start HaMeR server
-source ../.venv-hamer/bin/activate
+# Terminal 1 with .venv-hamer active: Start HaMeR server
 python -m recons.server.hamer
 
-# Terminal 2: Start GSAM server
-source ../.venv-gsam/bin/activate
+# Terminal 2 with .venv-gsam active: Start GSAM server
 python -m recons.server.gsam
 
-# Main Terminal: Run reconstruction client
-source ../.venv/bin/activate
+# Main terminal with .venv active: Run reconstruction client
 python -m recons.client
 ```
 
 **Phase 2: Object Pose Estimation**
 
 ```bash
-# Kill the HaMeR & GSAM servers first to free VRAM, then:
-source ../.venv-megapose/bin/activate
+# Kill the HaMeR & GSAM servers first to free VRAM, then run with .venv-megapose active:
 python -m recons.pose_est
 ```
 
@@ -225,7 +229,6 @@ python -m recons.pose_est
 **Refine the reconstructed hand pose to achieve physically plausible hand-object interaction.**
 
 ```bash
-source ../.venv/bin/activate
 python -m optim.main
 ```
 
@@ -233,7 +236,6 @@ python -m optim.main
 
 **Map human hand pose to dexterous robot hands**
 ```bash
-source ../.venv/bin/activate
 python -m human2robo.main
 # Specify hand types:
 python -m human2robo.main hand_types=[inspire,wuji,shadow]
@@ -244,7 +246,6 @@ python -m human2robo.main hand_types=[inspire,wuji,shadow]
 Visualize the retargeting results interactively.
 
 ```bash
-source ../.venv/bin/activate
 python -m scripts.vis_dexgrasp --output ../out --port 8080
 ```
 
