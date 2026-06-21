@@ -29,6 +29,7 @@ dependencies = [
     "geomloss>=0.2.0",
     "matplotlib>=3.7.0",
     "rootutils>=1.0.0",
+    "ninja>=1.11.0",
     "pandas>=2.0.0",
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
