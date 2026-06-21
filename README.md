@@ -124,15 +124,16 @@ uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pyt
 # 5. Install nvdiffrast
 uv pip install --no-build-isolation "git+https://github.com/NVlabs/nvdiffrast.git"
 
-# 6. Install local source-build dependencies from submodules
+# 6. Install the local CUDA extension from submodule
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
-uv pip install -e omnidexgrasp/thirdparty/EasyHOI
 
 # 7. Required for EasyHOI optimization
 uv pip install "chamfer-distance>=0.1"
 ```
 
 > **Note:** Building CSDF, PyTorch3D, nvdiffrast, and chamfer-distance from source requires a CUDA toolkit whose `nvcc` version matches `torch.version.cuda`. For example, the locked PyTorch wheel uses CUDA 12.8, so `/usr/local/cuda/bin/nvcc` pointing to CUDA 13.0 will fail with a CUDA mismatch.
+>
+> EasyHOI itself is not installed with `uv pip install -e` because the upstream repository does not provide `pyproject.toml` or `setup.py`. Stage 2 adds the EasyHOI source tree to `PYTHONPATH` instead.
 
 **Setting up server environments (`hamer`, `gsam`, `megapose`) with `uv`:**
 
@@ -263,6 +264,8 @@ python -m recons.pose_est
 **Refine the reconstructed hand pose to achieve physically plausible hand-object interaction.**
 
 ```bash
+export EASYHOI_ROOT="$PWD/thirdparty/EasyHOI"
+export PYTHONPATH="$EASYHOI_ROOT:$EASYHOI_ROOT/src:${PYTHONPATH:-}"
 python -m optim.main
 ```
 
