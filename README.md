@@ -139,6 +139,7 @@ uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
 # Example: MegaPose6D environment
 uv venv .venv-megapose --python 3.10
 source .venv-megapose/bin/activate
+uv sync --active --group megapose --inexact
 uv pip install -e omnidexgrasp/thirdparty/megapose6d
 ```
 

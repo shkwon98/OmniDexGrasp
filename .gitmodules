@@ -1,6 +1,7 @@
 [submodule "omnidexgrasp/thirdparty/CSDF"]
 	path = omnidexgrasp/thirdparty/CSDF
 	url = git@github.com:wrc042/CSDF.git
+	ignore = dirty
 [submodule "omnidexgrasp/thirdparty/EasyHOI"]
 	path = omnidexgrasp/thirdparty/EasyHOI
 	url = git@github.com:lym29/EasyHOI.git

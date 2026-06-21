@@ -34,6 +34,9 @@ dependencies = [
     "tqdm>=4.66.0",
     "rich>=13.0.0",
     "lightning-utilities>=0.11.0",
+    "ipython>=8.0.0",
+    "chumpy>=0.70",
+    "deprecation>=2.1.0",
 ]
 
 [dependency-groups]
@@ -77,6 +80,19 @@ gsam-server = [
     "pillow>=10.0.0",
 ]
 
+megapose = [
+    "pandas>=1.5.0",
+    "joblib>=1.2.0",
+    "transforms3d>=0.4.1",
+    "panda3d>=1.10.13",
+    "panda3d-gltf>=1.2.0",
+    "roma>=1.5.0",
+    "simplejson>=3.19.0",
+    "bokeh>=2.4.0",
+    "webdataset>=0.2.0",
+    "pypng>=0.20220715.0",
+]
+
 [tool.uv]
 package = false
 default-groups = []
@@ -89,3 +105,6 @@ explicit = true
 [tool.uv.sources]
 torch = { index = "pytorch-cu130" }
 torchvision = { index = "pytorch-cu130" }
+
+[tool.uv.extra-build-dependencies]
+chumpy = ["pip"]

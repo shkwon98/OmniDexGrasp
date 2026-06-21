@@ -7,13 +7,21 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+import sys
+
+from recons.pinocchio_compat import install_pinocchio_compat
+
+os.environ.setdefault("CONDA_PREFIX", sys.prefix)
+install_pinocchio_compat()
 
 import cv2
 import hydra
 import numpy as np
 import pandas as pd
 import torch
+
 from megapose.datasets.object_dataset import RigidObject, RigidObjectDataset
 from megapose.datasets.scene_dataset import CameraData, ObjectData
 from megapose.inference.types import ObservationTensor

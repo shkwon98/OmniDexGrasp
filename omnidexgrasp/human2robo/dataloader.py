@@ -15,6 +15,10 @@ import json
 import torch
 import trimesh
 
+from utils.legacy_compat import install_chumpy_compat
+
+install_chumpy_compat()
+
 from manotorch.manolayer import ManoLayer
 from pytorch3d.transforms import axis_angle_to_matrix, matrix_to_axis_angle
 

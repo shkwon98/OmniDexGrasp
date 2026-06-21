@@ -11,8 +11,12 @@ import hydra
 import torch
 from omegaconf import DictConfig
 
-from models.hoi_optim_module import HOI_Sync
+from utils.legacy_compat import install_chumpy_compat
+
+install_chumpy_compat()
+
 from optim.dataloader import OptimDataLoader
+from models.hoi_optim_module import HOI_Sync
 
 
 def run_optimization_stages(hoi_sync: HOI_Sync) -> None:
