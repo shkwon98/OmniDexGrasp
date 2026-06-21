@@ -114,7 +114,7 @@ if nvcc_cuda != torch_cuda:
 PY
 
 # Example when the matching CUDA toolkit is installed outside /usr/local/cuda:
-# export CUDA_HOME=/usr/local/cuda-12.8
+# export CUDA_HOME=/usr/local/cuda-13.0
 # export PATH="$CUDA_HOME/bin:$PATH"
 # export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
@@ -131,7 +131,7 @@ uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 uv pip install "chamfer-distance>=0.1"
 ```
 
-> **Note:** Building CSDF, PyTorch3D, nvdiffrast, and chamfer-distance from source requires a CUDA toolkit whose `nvcc` version matches `torch.version.cuda`. For example, the locked PyTorch wheel uses CUDA 12.8, so `/usr/local/cuda/bin/nvcc` pointing to CUDA 13.0 will fail with a CUDA mismatch.
+> **Note:** Building CSDF, PyTorch3D, nvdiffrast, and chamfer-distance from source requires a CUDA toolkit whose `nvcc` version matches `torch.version.cuda`. This project uses the PyTorch CUDA 13.0 wheel index, so `torch.version.cuda` and `nvcc --version` should both report CUDA 13.0.
 >
 > EasyHOI itself is not installed with `uv pip install -e` because the upstream repository does not provide `pyproject.toml` or `setup.py`. Stage 2 adds the EasyHOI source tree to `PYTHONPATH` instead.
 
