@@ -4,10 +4,7 @@ version = "0.1.0"
 description = "Generalizable dexterous grasping via foundation models and force feedback"
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
-dependencies = []
-
-[dependency-groups]
-core = [
+dependencies = [
     "torch>=2.7.0",
     "torchvision>=0.22.0",
     "numpy>=1.24.0",
@@ -39,6 +36,7 @@ core = [
     "lightning-utilities>=0.11.0",
 ]
 
+[dependency-groups]
 dev = [
     "ipython>=8.0.0",
 ]
@@ -75,6 +73,7 @@ gsam-server = [
 
 [tool.uv]
 package = false
+default-groups = []
 
 [[tool.uv.index]]
 name = "pytorch-cu130"

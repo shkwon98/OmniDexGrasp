@@ -74,11 +74,10 @@ Due to unresolved dependency conflicts between upstream model stacks, multiple `
 
 For `hamer`, `gsam`, and `megapose`, please refer to their official documentation for model-specific installation details.
 
-Dependency groups in `pyproject.toml` are split by runtime:
+Optional dependency groups in `pyproject.toml` are split by runtime:
 
 | Group | Purpose |
 |-------|---------|
-| `core` | Reconstruction client, optimization, retargeting, visualization |
 | `recons-server` | Common FastAPI server wrapper dependencies |
 | `hamer-server` | HaMeR server wrapper dependencies |
 | `gsam-server` | Grounded-SAM-2 server wrapper dependencies |
@@ -93,8 +92,8 @@ Dependency groups in `pyproject.toml` are split by runtime:
 uv venv --python 3.10
 source .venv/bin/activate
 
-# 2. Install locked core dependencies
-uv sync --no-default-groups --group core
+# 2. Install locked base dependencies
+uv sync
 
 # 3. Install PyTorch3D
 uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
@@ -127,13 +126,13 @@ The upstream model stacks still have conflicting dependencies, so keep separate 
 # Example: HaMeR server environment
 uv venv .venv-hamer --python 3.10
 source .venv-hamer/bin/activate
-uv sync --active --no-install-project --no-default-groups --group hamer-server
+uv sync --active --only-group hamer-server
 uv pip install -e omnidexgrasp/thirdparty/hamer
 
 # Example: Grounded-SAM-2 server environment
 uv venv .venv-gsam --python 3.10
 source .venv-gsam/bin/activate
-uv sync --active --no-install-project --no-default-groups --group gsam-server
+uv sync --active --only-group gsam-server
 uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
 
 # Example: MegaPose6D environment
@@ -179,7 +178,7 @@ Download it into the local `datasets/` folder before running the code.
 Example using `huggingface_hub`:
 
 ```bash
-uv sync --inexact --no-default-groups --group dataset-download
+uv sync --inexact --group dataset-download
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download(
@@ -311,7 +310,7 @@ If you use `scripts/gen_human_grasp.py`, it writes files named `generated_human_
 Install its optional Gemini client dependencies only when you use that script:
 
 ```bash
-uv sync --inexact --no-default-groups --group image-generation
+uv sync --inexact --group image-generation
 ```
 
 For best results, ensure the generated image matches the aspect ratio of the original `scene_image.png`.

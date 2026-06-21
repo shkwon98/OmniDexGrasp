@@ -1580,9 +1580,7 @@ wheels = [
 name = "omnidexgrasp"
 version = "0.1.0"
 source = { virtual = "." }
-
-[package.dev-dependencies]
-core = [
+dependencies = [
     { name = "geomloss" },
     { name = "hydra-core" },
     { name = "imageio" },
@@ -1618,6 +1616,8 @@ core = [
     { name = "viser" },
     { name = "yacs" },
 ]
+
+[package.dev-dependencies]
 dataset-download = [
     { name = "huggingface-hub" },
 ]
@@ -1657,9 +1657,7 @@ recons-server = [
 ]
 
 [package.metadata]
-
-[package.metadata.requires-dev]
-core = [
+requires-dist = [
     { name = "geomloss", specifier = ">=0.2.0" },
     { name = "hydra-core", specifier = ">=1.3.0" },
     { name = "imageio", specifier = ">=2.31.0" },
@@ -1690,6 +1688,8 @@ core = [
     { name = "viser", specifier = ">=0.2.0" },
     { name = "yacs", specifier = ">=0.1.8" },
 ]
+
+[package.metadata.requires-dev]
 dataset-download = [{ name = "huggingface-hub", specifier = ">=0.23.0,<2" }]
 dev = [{ name = "ipython", specifier = ">=8.0.0" }]
 gsam-server = [
