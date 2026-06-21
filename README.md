@@ -106,7 +106,7 @@ git -C omnidexgrasp/thirdparty/CSDF apply ../../../patches/csdf-torch-cuda-check
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 
 # 6. Required for EasyHOI optimization
-uv pip install "chamfer-distance>=0.1"
+uv pip install --no-build-isolation "git+https://github.com/otaheri/chamfer_distance"
 ```
 
 > **Note:** This project uses the PyTorch CUDA 13.0 wheel index. Source-build packages require a matching CUDA toolkit.
