@@ -150,7 +150,7 @@ uv pip install fastapi uvicorn pydantic hydra-core omegaconf
 uv venv .venv-gsam --python 3.10
 source .venv-gsam/bin/activate
 uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
-uv pip install fastapi uvicorn pydantic hydra-core omegaconf
+uv pip install fastapi uvicorn pydantic hydra-core omegaconf transformers supervision pycocotools opencv-python
 
 # Example: MegaPose6D environment
 uv venv .venv-megapose --python 3.10
@@ -323,6 +323,12 @@ You can also use open-source alternatives such as [TRELLIS.2](https://github.com
 We recommend using [gpt-image-1](https://platform.openai.com/docs/guides/image-generation) or [gemini-3-pro-image](https://ai.google.dev/gemini-api/docs/image-generation) to generate `generated_human_grasp.png` — a synthetic image depicting a human hand grasping the object.
 
 If you use `scripts/gen_human_grasp.py`, it writes files named `generated_human_grasp_0.png`, `generated_human_grasp_1.png`, and so on. Pick one generated image and copy or rename it to `generated_human_grasp.png`, which is the filename consumed by `recons.client`, `recons.pose_est`, and `optim.main`.
+
+Install its optional Gemini client dependencies only when you use that script:
+
+```bash
+uv sync --extra image-generation
+```
 
 For best results, ensure the generated image matches the aspect ratio of the original `scene_image.png`.
 
