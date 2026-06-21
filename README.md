@@ -103,9 +103,7 @@ uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pyt
 uv pip install --no-build-isolation "git+https://github.com/NVlabs/nvdiffrast.git"
 
 # 5. Patch and install the local CSDF CUDA extension from submodule
-if ! git -C omnidexgrasp/thirdparty/CSDF apply --reverse --check ../../../patches/csdf-torch-cuda-check.patch 2>/dev/null; then
-  git -C omnidexgrasp/thirdparty/CSDF apply ../../../patches/csdf-torch-cuda-check.patch
-fi
+git -C omnidexgrasp/thirdparty/CSDF apply ../../../patches/csdf-torch-cuda-check.patch
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 
 # 6. Required for EasyHOI optimization
@@ -115,6 +113,7 @@ uv pip install "chamfer-distance>=0.1"
 > **Note:** This project uses the PyTorch CUDA 13.0 wheel index. Source-build packages require a matching CUDA toolkit.
 >
 > The CSDF patch replaces an upstream `CHECK_EQ` CUDA error check that fails to compile with newer PyTorch headers.
+> Apply it once before installing CSDF.
 >
 > Optional add-on groups use `uv sync --inexact` so uv does not remove manually built packages such as PyTorch3D, nvdiffrast, and CSDF.
 >
