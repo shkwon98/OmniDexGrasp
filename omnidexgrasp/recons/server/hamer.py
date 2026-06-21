@@ -6,6 +6,7 @@ Usage: python -m recons.server.hamer
 """
 import base64
 import io
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,6 +25,10 @@ _LEFT_HAND = slice(-42, -21)
 _RIGHT_HAND = slice(-21, None)
 
 LIGHT_BLUE = (0.65098039, 0.74117647, 0.85882353)
+
+_HAMER_ROOT = Path(__file__).resolve().parents[2] / "thirdparty" / "hamer"
+if str(_HAMER_ROOT) not in sys.path:
+    sys.path.insert(0, str(_HAMER_ROOT))
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -126,13 +126,14 @@ The upstream model stacks still have conflicting dependencies, so keep separate 
 # Example: HaMeR server environment
 uv venv .venv-hamer --python 3.10
 source .venv-hamer/bin/activate
-uv sync --active --only-group hamer-server
+uv sync --active --only-group hamer-server --inexact
 uv pip install -e omnidexgrasp/thirdparty/hamer --no-build-isolation
+uv pip install -e omnidexgrasp/thirdparty/hamer/third-party/ViTPose --no-build-isolation
 
 # Example: Grounded-SAM-2 server environment
 uv venv .venv-gsam --python 3.10
 source .venv-gsam/bin/activate
-uv sync --active --only-group gsam-server
+uv sync --active --only-group gsam-server --inexact
 uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
 
 # Example: MegaPose6D environment
@@ -161,6 +162,7 @@ OmniDexGrasp/
 ├── datasets/                      # Download HuggingFace dataset here
 └── checkpoints/
     ├── hamer/                      # HaMeR + ViTPose + Detectron2
+    │   ├── hamer_ckpts/model_config.yaml
     │   ├── hamer_ckpts/checkpoints/hamer.ckpt
     │   ├── vitpose_ckpts/vitpose+_huge/wholebody.pth
     │   └── detectron2/model_final_f05665.pkl
