@@ -59,7 +59,7 @@ class HaMeRModel:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"🚀 Loading HaMeR models on {device}...")
 
-        hamer.configs.CACHE_DIR_HAMER = str(Path(cfg.model.checkpoint).parent)
+        hamer.configs.CACHE_DIR_HAMER = str(Path(cfg.model.checkpoint).parents[2])
         ViTPoseModel.MODEL_DICT = {
             "ViTPose+-G (multi-task train, COCO)": {
                 "config": cfg.model.vitpose_config,

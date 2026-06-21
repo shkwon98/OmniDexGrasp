@@ -157,11 +157,12 @@ OmniDexGrasp/
 ├── assets/
 │   ├── mano/models/                # MANO hand model
 │   │   ├── MANO_RIGHT.pkl
-│   │   └── mano_mean_params.npz
 │   └── robo/                       ✅ Included in repo
 ├── datasets/                      # Download HuggingFace dataset here
-└── checkpoints/
+├── checkpoints/
     ├── hamer/                      # HaMeR + ViTPose + Detectron2
+    │   ├── data/mano/MANO_RIGHT.pkl -> assets/mano/models/MANO_RIGHT.pkl
+    │   ├── data/mano_mean_params.npz
     │   ├── hamer_ckpts/model_config.yaml
     │   ├── hamer_ckpts/checkpoints/hamer.ckpt
     │   ├── vitpose_ckpts/vitpose+_huge/wholebody.pth
@@ -169,6 +170,10 @@ OmniDexGrasp/
     └── gsam2/                      # Grounded-SAM-2
         ├── sam2.1_hiera_base_plus.pt
         └── grounding-dino-base/
+└── omnidexgrasp/thirdparty/megapose6d/local_data/megapose-models/
+    ├── coarse-rgb-906902141/
+    ├── refiner-rgb-653307694/
+    └── refiner-rgbd-288182519/
 ```
 
 ### Download dataset from HuggingFace
@@ -195,10 +200,47 @@ PY
 
 If you prefer the HuggingFace web UI, download the dataset files manually and place them under `datasets/`.
 
-Download checkpoints following the official documentation of each submodule:
-[geopavlakos/hamer](https://github.com/geopavlakos/hamer) |
-[IDEA-Research/Grounded-SAM-2](https://github.com/IDEA-Research/Grounded-SAM-2) |
-[megapose6d/megapose6d](https://github.com/megapose6d/megapose6d)
+Download checkpoints:
+
+```bash
+# HaMeR + ViTPose
+mkdir -p checkpoints/hamer
+curl -L -C - -o checkpoints/hamer/hamer_demo_data.tar.gz \
+  https://www.cs.utexas.edu/~pavlakos/hamer/data/hamer_demo_data.tar.gz
+tar --warning=no-unknown-keyword --exclude=".*" \
+  -xzf checkpoints/hamer/hamer_demo_data.tar.gz \
+  -C checkpoints/hamer --strip-components=1
+
+# HaMeR Detectron2 body detector
+mkdir -p checkpoints/hamer/detectron2 checkpoints/hamer/data/mano
+curl -L -C - -o checkpoints/hamer/detectron2/model_final_f05665.pkl \
+  https://dl.fbaipublicfiles.com/detectron2/ViTDet/COCO/cascade_mask_rcnn_vitdet_h/f328730692/model_final_f05665.pkl
+ln -sfn ../../../../assets/mano/models/MANO_RIGHT.pkl checkpoints/hamer/data/mano/MANO_RIGHT.pkl
+
+# Grounded-SAM-2
+mkdir -p checkpoints/gsam2
+curl -L -C - -o checkpoints/gsam2/sam2.1_hiera_base_plus.pt \
+  https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt
+uv run --isolated --no-project --with huggingface-hub python - <<'PY'
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id='IDEA-Research/grounding-dino-base',
+    local_dir='checkpoints/gsam2/grounding-dino-base',
+    ignore_patterns=['.git/*'],
+)
+PY
+
+# MegaPose6D
+mkdir -p omnidexgrasp/thirdparty/megapose6d/local_data/megapose-models
+base=https://www.paris.inria.fr/archive_ylabbeprojectsdata/megapose/megapose-models
+root=omnidexgrasp/thirdparty/megapose6d/local_data/megapose-models
+for d in coarse-rgb-906902141 refiner-rgb-653307694 refiner-rgbd-288182519; do
+  mkdir -p "$root/$d"
+  curl -L -o "$root/$d/checkpoint.pth.tar" "$base/$d/checkpoint.pth.tar"
+  curl -L -o "$root/$d/config.yaml" "$base/$d/config.yaml"
+  curl -L -o "$root/$d/log.txt" "$base/$d/log.txt"
+done
+```
 
 MANO hand model requires registration at [mano.is.tue.mpg.de](https://mano.is.tue.mpg.de/).
 
