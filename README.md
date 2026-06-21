@@ -84,54 +84,20 @@ source .venv/bin/activate
 # 2. Install locked base dependencies
 uv sync
 
-# 3. Check CUDA alignment before installing source-build packages.
-# If this fails, select or install a CUDA toolkit matching torch.version.cuda.
-python - <<'PY'
-import re
-import shutil
-import subprocess
-import torch
-
-torch_cuda = torch.version.cuda
-nvcc = shutil.which("nvcc")
-if not torch_cuda:
-    raise SystemExit("PyTorch is not a CUDA build. Install a CUDA PyTorch wheel before continuing.")
-if not nvcc:
-    raise SystemExit("nvcc was not found. Install/select a CUDA toolkit before continuing.")
-
-out = subprocess.check_output([nvcc, "--version"], text=True)
-match = re.search(r"release (\d+\.\d+)", out)
-nvcc_cuda = match.group(1) if match else "unknown"
-print(f"PyTorch: {torch.__version__}")
-print(f"PyTorch CUDA runtime: {torch_cuda}")
-print(f"nvcc: {nvcc}")
-print(f"nvcc CUDA toolkit: {nvcc_cuda}")
-if nvcc_cuda != torch_cuda:
-    raise SystemExit(
-        f"CUDA mismatch: PyTorch uses CUDA {torch_cuda}, but nvcc is CUDA {nvcc_cuda}. "
-        f"Set CUDA_HOME/PATH to a CUDA {torch_cuda} toolkit before continuing."
-    )
-PY
-
-# Example when the matching CUDA toolkit is installed outside /usr/local/cuda:
-# export CUDA_HOME=/usr/local/cuda-13.0
-# export PATH="$CUDA_HOME/bin:$PATH"
-# export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
-
-# 4. Install PyTorch3D
+# 3. Install PyTorch3D
 uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
 
-# 5. Install nvdiffrast
+# 4. Install nvdiffrast
 uv pip install --no-build-isolation "git+https://github.com/NVlabs/nvdiffrast.git"
 
-# 6. Install the local CUDA extension from submodule
+# 5. Install the local CUDA extension from submodule
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 
-# 7. Required for EasyHOI optimization
+# 6. Required for EasyHOI optimization
 uv pip install "chamfer-distance>=0.1"
 ```
 
-> **Note:** Building CSDF, PyTorch3D, nvdiffrast, and chamfer-distance from source requires a CUDA toolkit whose `nvcc` version matches `torch.version.cuda`. This project uses the PyTorch CUDA 13.0 wheel index, so `torch.version.cuda` and `nvcc --version` should both report CUDA 13.0.
+> **Note:** This project uses the PyTorch CUDA 13.0 wheel index. Source-build packages require a matching CUDA toolkit.
 >
 > EasyHOI itself is not installed with `uv pip install -e` because the upstream repository does not provide `pyproject.toml` or `setup.py`. Stage 2 adds the EasyHOI source tree to `PYTHONPATH` instead.
 
