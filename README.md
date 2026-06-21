@@ -127,7 +127,7 @@ The upstream model stacks still have conflicting dependencies, so keep separate 
 uv venv .venv-hamer --python 3.10
 source .venv-hamer/bin/activate
 uv sync --active --only-group hamer-server
-uv pip install -e omnidexgrasp/thirdparty/hamer
+uv pip install -e omnidexgrasp/thirdparty/hamer --no-build-isolation
 
 # Example: Grounded-SAM-2 server environment
 uv venv .venv-gsam --python 3.10
