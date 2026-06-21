@@ -268,24 +268,29 @@ Activate the matching `uv` environment once per terminal before running each com
 **Phase 1: Hand & Object Reconstruction**
 
 ```bash
-# Terminal 1 with .venv-hamer active: Start HaMeR server
-python -m recons.server.hamer
-
-# Terminal 2 with .venv-gsam active: Start GSAM server
+# Terminal 1 with .venv-gsam active: Start GSAM server
 python -m recons.server.gsam
 
-# Main terminal with .venv active: Run reconstruction client
-python -m recons.client
+# Main terminal with .venv active: Run GSAM segmentation and object scale
+python -m recons.client phase=gsam
+
+# Stop the GSAM server, then start HaMeR server with .venv-hamer active
+python -m recons.server.hamer
+
+# Main terminal with .venv active: Run HaMeR hand reconstruction
+python -m recons.client phase=hamer
 ```
+
+If both servers fit in VRAM at the same time, you can run both servers and use `python -m recons.client phase=all`.
 
 **Phase 2: Object Pose Estimation**
 
 ```bash
-# Kill the HaMeR & GSAM servers first to free VRAM, then run with .venv-megapose active:
+# Kill the reconstruction server first to free VRAM, then run with .venv-megapose active:
 python -m recons.pose_est
 ```
 
-> **Note:** Loading all models simultaneously requires >24GB VRAM, exceeding a single RTX 4090. We split reconstruction into two phases — kill the servers before running pose estimation to free VRAM.
+> **Note:** Loading all reconstruction and pose-estimation models simultaneously requires >24GB VRAM. Run the servers sequentially and kill them before pose estimation if VRAM is limited.
 
 ### 🤚 Stage 2: Hand Pose Optimization
 

@@ -1,6 +1,6 @@
 """🚀 Reconstruction pipeline entry point.
 
-Usage: python -m recons.run
+Usage: python -m recons.client
 """
 import base64
 import io
@@ -146,69 +146,83 @@ def call_hamer(
 # ── 🎯 Task Processing ──────────────────────────────────────────────────────
 
 
+VALID_PHASES = {"all", "gsam", "hamer"}
+
+
+def _get_phase(cfg: DictConfig) -> str:
+    """Return reconstruction phase from Hydra config."""
+    phase = str(cfg.get("phase", "all")).lower()
+    if phase not in VALID_PHASES:
+        raise ValueError(f"Invalid recons phase '{phase}'. Choose one of: {sorted(VALID_PHASES)}")
+    return phase
+
+
 def process_task(task: TaskInput, cfg: DictConfig) -> TaskOutput:
     """Process a single task through the reconstruction pipeline."""
+    phase = _get_phase(cfg)
     output = TaskOutput(name=task.name)
     timeout = cfg.servers.timeout
 
-    # 📷 Encode images once, reuse for all servers
-    scene_b64 = encode_image_file_b64(task.scene_image)
+    # 📷 Encode grasp image once; both GSAM(grasp) and HaMeR use it.
     grasp_b64 = encode_image_file_b64(task.generated_grasp)
 
     # 📐 Grasp image intrinsics
-    grasp_img = Image.open(task.generated_grasp)
-    grasp_cam = dynamic_intrinsics(task.camera, grasp_img.width, grasp_img.height)
+    with Image.open(task.generated_grasp) as grasp_img:
+        grasp_cam = dynamic_intrinsics(task.camera, grasp_img.width, grasp_img.height)
     grasp_focal = compute_focal(grasp_cam)
-
-    # 1️⃣ GSAM: scene_image (no hand)
-    logging.info("  🎭 GSAM: scene_image (no hand)")
-    output.gsam_scene = call_gsam(
-        cfg.servers.gsam, scene_b64, task.obj_description,
-        include_hand=False, timeout=timeout,
-    )
-    logging.info(f"     └─ {output.gsam_scene.status}: {output.gsam_scene.message}")
-
-    # 2️⃣ Scale: compute object real-world scale
-    logging.info("  📏 Scale: computing object real-world scale")
-    obj_mask = decode_mask_rle(extract_obj_mask_rle(output.gsam_scene))
-
-    pcd_raw = depth_to_pointcloud(
-        task.depth, obj_mask, task.camera,
-        depth_scale=cfg.scale.depth_scale,
-        max_depth_m=cfg.scale.max_depth_m,
-        edge_erode_px=cfg.scale.edge_erode_px,
-    )
-    logging.info(f"     └─ raw points: {pcd_raw.shape[0]}")
-
-    pcd_clean = denoise_pointcloud(pcd_raw, cfg.scale.stat_nb_neighbors, cfg.scale.stat_std_ratio)
-    logging.info(f"     └─ cleaned: {pcd_clean.shape[0]}")
-
-    scale_factor, pcd_ext, mesh_ext = compute_obj_scale(pcd_clean, task.obj_mesh)
-    output.scale = ScaleResult(
-        scale_factor=scale_factor,
-        pcd_num_points=pcd_clean.shape[0],
-        pcd_max_extent=pcd_ext,
-        mesh_max_extent=mesh_ext,
-        scaled_mesh=scale_and_center_mesh(task.obj_mesh, scale_factor),
-    )
-    output.scene_pcd = pcd_clean  # scene obj pointcloud (denoised)
-    logging.info(f"     └─ scale_factor: {scale_factor:.6f}")
-    logging.info(f"     └─ pcd_extent: {pcd_ext:.4f}m, mesh_extent: {mesh_ext:.4f}")
-
-    # 3️⃣ GSAM: generated_grasp (with hand)
-    logging.info("  🎭 GSAM: generated_grasp (with hand)")
-    output.gsam_grasp = call_gsam(
-        cfg.servers.gsam, grasp_b64, task.obj_description,
-        include_hand=True, timeout=timeout,
-    )
-    logging.info(f"     └─ {output.gsam_grasp.status}: {output.gsam_grasp.message}")
-
-    # 4️⃣ HaMeR: hand reconstruction
-    logging.info(f"  🤚 HaMeR: hand reconstruction (focal={grasp_focal:.2f})")
-    output.hamer = call_hamer(cfg.servers.hamer, grasp_b64, grasp_focal, timeout=timeout)
-    logging.info(f"     └─ {output.hamer.status}: {output.hamer.message}")
-
     output.grasp_cam = grasp_cam
+
+    if phase in {"all", "gsam"}:
+        scene_b64 = encode_image_file_b64(task.scene_image)
+
+        # 1️⃣ GSAM: scene_image (no hand)
+        logging.info("  🎭 GSAM: scene_image (no hand)")
+        output.gsam_scene = call_gsam(
+            cfg.servers.gsam, scene_b64, task.obj_description,
+            include_hand=False, timeout=timeout,
+        )
+        logging.info(f"     └─ {output.gsam_scene.status}: {output.gsam_scene.message}")
+
+        # 2️⃣ Scale: compute object real-world scale
+        logging.info("  📏 Scale: computing object real-world scale")
+        obj_mask = decode_mask_rle(extract_obj_mask_rle(output.gsam_scene))
+
+        pcd_raw = depth_to_pointcloud(
+            task.depth, obj_mask, task.camera,
+            depth_scale=cfg.scale.depth_scale,
+            max_depth_m=cfg.scale.max_depth_m,
+            edge_erode_px=cfg.scale.edge_erode_px,
+        )
+        logging.info(f"     └─ raw points: {pcd_raw.shape[0]}")
+
+        pcd_clean = denoise_pointcloud(pcd_raw, cfg.scale.stat_nb_neighbors, cfg.scale.stat_std_ratio)
+        logging.info(f"     └─ cleaned: {pcd_clean.shape[0]}")
+
+        scale_factor, pcd_ext, mesh_ext = compute_obj_scale(pcd_clean, task.obj_mesh)
+        output.scale = ScaleResult(
+            scale_factor=scale_factor,
+            pcd_num_points=pcd_clean.shape[0],
+            pcd_max_extent=pcd_ext,
+            mesh_max_extent=mesh_ext,
+            scaled_mesh=scale_and_center_mesh(task.obj_mesh, scale_factor),
+        )
+        output.scene_pcd = pcd_clean  # scene obj pointcloud (denoised)
+        logging.info(f"     └─ scale_factor: {scale_factor:.6f}")
+        logging.info(f"     └─ pcd_extent: {pcd_ext:.4f}m, mesh_extent: {mesh_ext:.4f}")
+
+        # 3️⃣ GSAM: generated_grasp (with hand)
+        logging.info("  🎭 GSAM: generated_grasp (with hand)")
+        output.gsam_grasp = call_gsam(
+            cfg.servers.gsam, grasp_b64, task.obj_description,
+            include_hand=True, timeout=timeout,
+        )
+        logging.info(f"     └─ {output.gsam_grasp.status}: {output.gsam_grasp.message}")
+
+    if phase in {"all", "hamer"}:
+        logging.info(f"  🤚 HaMeR: hand reconstruction (focal={grasp_focal:.2f})")
+        output.hamer = call_hamer(cfg.servers.hamer, grasp_b64, grasp_focal, timeout=timeout)
+        logging.info(f"     └─ {output.hamer.status}: {output.hamer.message}")
+
     return output
 
 

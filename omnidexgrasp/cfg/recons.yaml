@@ -5,6 +5,7 @@ defaults:
 
 datasets: ../datasets
 output: ../out
+phase: all  # all | gsam | hamer
 
 servers:
   gsam: http://localhost:6001/predict
