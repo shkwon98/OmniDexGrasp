@@ -1,0 +1,23 @@
+diff --git a/csdf/csrc/utils.h b/csdf/csrc/utils.h
+index d8ecdbd..f8b35cf 100644
+--- a/csdf/csrc/utils.h
++++ b/csdf/csrc/utils.h
+@@ -15,16 +15,12 @@
+ #define CSDF_UTILS_H_
+ 
+ #include <ATen/ATen.h>
++#include <c10/cuda/CUDAException.h>
+ #include <typeinfo>
+ #include <cuda.h>
+ 
+-#define CUDA_CHECK(condition) \
+-  /* Code block avoids redefinition of cudaError_t error */ \
+-  do { \
+-    cudaError_t error = condition; \
+-    CHECK_EQ(error, cudaSuccess) << " " << cudaGetErrorString(error); \
+-  } while (0)
++#define CUDA_CHECK(condition) C10_CUDA_CHECK(condition)
+ 
+ #define PRIVATE_CASE_TYPE(ENUM_TYPE, TYPE, TYPE_NAME, ...) \
+   case ENUM_TYPE: { \
+     using TYPE_NAME = TYPE; \

@@ -74,6 +74,18 @@ Due to unresolved dependency conflicts between upstream model stacks, multiple `
 
 For `hamer`, `gsam`, and `megapose`, please refer to their official documentation for model-specific installation details.
 
+Dependency groups in `pyproject.toml` are split by runtime:
+
+| Group | Purpose |
+|-------|---------|
+| `core` | Reconstruction client, optimization, retargeting, visualization |
+| `recons-server` | Common FastAPI server wrapper dependencies |
+| `hamer-server` | HaMeR server wrapper dependencies |
+| `gsam-server` | Grounded-SAM-2 server wrapper dependencies |
+| `dataset-download` | Optional HuggingFace dataset download helper |
+| `image-generation` | Optional Gemini client for `scripts/gen_human_grasp.py` |
+| `dev` | Optional interactive development tools |
+
 **Setting up the `omnidexgrasp` environment with `uv`:**
 
 ```bash
@@ -81,8 +93,8 @@ For `hamer`, `gsam`, and `megapose`, please refer to their official documentatio
 uv venv --python 3.10
 source .venv/bin/activate
 
-# 2. Install locked base dependencies
-uv sync
+# 2. Install locked core dependencies
+uv sync --no-default-groups --group core
 
 # 3. Install PyTorch3D
 uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
@@ -90,7 +102,10 @@ uv pip install --no-build-isolation "git+https://github.com/facebookresearch/pyt
 # 4. Install nvdiffrast
 uv pip install --no-build-isolation "git+https://github.com/NVlabs/nvdiffrast.git"
 
-# 5. Install the local CUDA extension from submodule
+# 5. Patch and install the local CSDF CUDA extension from submodule
+if ! git -C omnidexgrasp/thirdparty/CSDF apply --reverse --check ../../../patches/csdf-torch-cuda-check.patch 2>/dev/null; then
+  git -C omnidexgrasp/thirdparty/CSDF apply ../../../patches/csdf-torch-cuda-check.patch
+fi
 uv pip install -e omnidexgrasp/thirdparty/CSDF --no-build-isolation
 
 # 6. Required for EasyHOI optimization
@@ -98,6 +113,10 @@ uv pip install "chamfer-distance>=0.1"
 ```
 
 > **Note:** This project uses the PyTorch CUDA 13.0 wheel index. Source-build packages require a matching CUDA toolkit.
+>
+> The CSDF patch replaces an upstream `CHECK_EQ` CUDA error check that fails to compile with newer PyTorch headers.
+>
+> Optional add-on groups use `uv sync --inexact` so uv does not remove manually built packages such as PyTorch3D, nvdiffrast, and CSDF.
 >
 > EasyHOI itself is not installed with `uv pip install -e` because the upstream repository does not provide `pyproject.toml` or `setup.py`. Stage 2 adds the EasyHOI source tree to `PYTHONPATH` instead.
 
@@ -109,14 +128,14 @@ The upstream model stacks still have conflicting dependencies, so keep separate 
 # Example: HaMeR server environment
 uv venv .venv-hamer --python 3.10
 source .venv-hamer/bin/activate
+uv sync --active --no-install-project --no-default-groups --group hamer-server
 uv pip install -e omnidexgrasp/thirdparty/hamer
-uv pip install fastapi uvicorn pydantic hydra-core omegaconf
 
 # Example: Grounded-SAM-2 server environment
 uv venv .venv-gsam --python 3.10
 source .venv-gsam/bin/activate
+uv sync --active --no-install-project --no-default-groups --group gsam-server
 uv pip install -e omnidexgrasp/thirdparty/Grounded-SAM-2
-uv pip install fastapi uvicorn pydantic hydra-core omegaconf transformers supervision pycocotools opencv-python
 
 # Example: MegaPose6D environment
 uv venv .venv-megapose --python 3.10
@@ -161,7 +180,7 @@ Download it into the local `datasets/` folder before running the code.
 Example using `huggingface_hub`:
 
 ```bash
-uv pip install huggingface_hub
+uv sync --inexact --no-default-groups --group dataset-download
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download(
@@ -293,7 +312,7 @@ If you use `scripts/gen_human_grasp.py`, it writes files named `generated_human_
 Install its optional Gemini client dependencies only when you use that script:
 
 ```bash
-uv sync --extra image-generation
+uv sync --inexact --no-default-groups --group image-generation
 ```
 
 For best results, ensure the generated image matches the aspect ratio of the original `scene_image.png`.
