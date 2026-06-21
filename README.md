@@ -192,21 +192,21 @@ MANO hand model requires registration at [mano.is.tue.mpg.de](https://mano.is.tu
 
 ### 🍵 Stage 1: Reconstruction
 
-Reconstruct 3D hand and object from input images. All commands run from the `omnidexgrasp/` directory.
+Reconstruct 3D hand and object from input images. All `python -m ...` commands below are run from the `omnidexgrasp/` directory because the code imports `recons`, `optim`, `human2robo`, and `utils` as top-level packages.
 
 **Phase 1: Hand & Object Reconstruction**
 
 ```bash
 # Terminal 1: Start HaMeR server
-conda activate hamer
+source ../.venv-hamer/bin/activate
 python -m recons.server.hamer
 
 # Terminal 2: Start GSAM server
-conda activate gsam
+source ../.venv-gsam/bin/activate
 python -m recons.server.gsam
 
 # Main Terminal: Run reconstruction client
-conda activate omnidexgrasp
+source ../.venv/bin/activate
 python -m recons.client
 ```
 
@@ -214,7 +214,7 @@ python -m recons.client
 
 ```bash
 # Kill the HaMeR & GSAM servers first to free VRAM, then:
-conda activate megapose
+source ../.venv-megapose/bin/activate
 python -m recons.pose_est
 ```
 
@@ -225,7 +225,7 @@ python -m recons.pose_est
 **Refine the reconstructed hand pose to achieve physically plausible hand-object interaction.**
 
 ```bash
-conda activate omnidexgrasp
+source ../.venv/bin/activate
 python -m optim.main
 ```
 
@@ -233,7 +233,7 @@ python -m optim.main
 
 **Map human hand pose to dexterous robot hands**
 ```bash
-conda activate omnidexgrasp
+source ../.venv/bin/activate
 python -m human2robo.main
 # Specify hand types:
 python -m human2robo.main hand_types=[inspire,wuji,shadow]
@@ -244,7 +244,7 @@ python -m human2robo.main hand_types=[inspire,wuji,shadow]
 Visualize the retargeting results interactively.
 
 ```bash
-conda activate omnidexgrasp
+source ../.venv/bin/activate
 python -m scripts.vis_dexgrasp --output ../out --port 8080
 ```
 
@@ -283,6 +283,8 @@ You can also use open-source alternatives such as [TRELLIS.2](https://github.com
 **3. Generate Grasp Image**
 
 We recommend using [gpt-image-1](https://platform.openai.com/docs/guides/image-generation) or [gemini-3-pro-image](https://ai.google.dev/gemini-api/docs/image-generation) to generate `generated_human_grasp.png` — a synthetic image depicting a human hand grasping the object.
+
+If you use `scripts/gen_human_grasp.py`, it writes files named `generated_human_grasp_0.png`, `generated_human_grasp_1.png`, and so on. Pick one generated image and copy or rename it to `generated_human_grasp.png`, which is the filename consumed by `recons.client`, `recons.pose_est`, and `optim.main`.
 
 For best results, ensure the generated image matches the aspect ratio of the original `scene_image.png`.
 
